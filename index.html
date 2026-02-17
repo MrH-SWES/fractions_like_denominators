@@ -3,276 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fraction Addition Visualizer</title>
+    <title>Interactive Fraction Lab</title>
     <style>
         :root {
-            --color-1: #4CAF50; /* Green */
-            --color-2: #2196F3; /* Blue */
-            --bg-color: #f4f4f9;
-            --card-bg: #ffffff;
+            --c1: #4CAF50; /* Green */
+            --c1-hover: #45a049;
+            --c2: #2196F3; /* Blue */
+            --c2-hover: #1e88e5;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #37474f;
+            --border: #cfd8dc;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: #333;
-            max-width: 1000px;
-            margin: 0 auto;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
             padding: 20px;
-        }
-
-        h1 { text-align: center; color: #444; }
-        p.subtitle { text-align: center; color: #666; margin-bottom: 30px; }
-
-        /* Controls Section */
-        .controls {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .fraction-input {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 1.2rem;
-            font-weight: bold;
         }
 
-        input[type="number"] {
-            width: 60px;
-            text-align: center;
-            font-size: 1.2rem;
-            padding: 5px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-        }
+        h1 { margin-bottom: 5px; color: #263238; }
+        p.subtitle { margin-top: 0; color: #546e7a; margin-bottom: 30px; }
 
-        input[type="number"]:focus { border-color: var(--color-2); outline: none; }
-
-        .fraction-line {
+        /* --- DASHBOARD CONTROLS --- */
+        .dashboard {
+            background: var(--card);
+            padding: 20px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             width: 100%;
-            height: 2px;
-            background-color: #333;
-            margin: 5px 0;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
-        .operator { font-size: 2rem; font-weight: bold; color: #555; }
-
-        /* Visualization Containers */
-        .vis-section {
-            background: var(--card-bg);
-            padding: 25px;
-            margin-bottom: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        .equation-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            gap: 15px;
+            margin-bottom: 10px;
         }
 
-        .vis-header {
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            font-size: 2rem;
+        }
+        .frac span.top { border-bottom: 3px solid #333; padding: 0 5px; display: block; width: 100%; text-align: center; }
+        .frac span.bottom { display: block; width: 100%; text-align: center; }
+        
+        .num-green { color: var(--c1); }
+        .num-blue { color: var(--c2); }
+
+        .controls-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
         }
 
-        .vis-title { font-size: 1.2rem; font-weight: bold; color: #555; }
+        /* Mode Toggles */
+        .mode-selector {
+            display: flex;
+            background: #eceff1;
+            border-radius: 30px;
+            padding: 5px;
+            gap: 5px;
+        }
+
+        .mode-btn {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-btn.green { background: transparent; color: #78909c; }
+        .mode-btn.green.active { background: var(--c1); color: white; shadow: 0 2px 5px rgba(0,0,0,0.2); }
         
-        .explanation {
-            background-color: #e8f5e9;
-            padding: 10px 15px;
-            border-radius: 6px;
-            color: #2e7d32;
+        .mode-btn.blue { background: transparent; color: #78909c; }
+        .mode-btn.blue.active { background: var(--c2); color: white; shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+            justify-content: flex-end;
+        }
+        
+        input[type=range] {
+            width: 200px;
+            accent-color: #607d8b;
+            cursor: pointer;
+        }
+
+        /* --- VISUALIZATION AREAS --- */
+        .vis-container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .vis-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .vis-title {
+            font-weight: 600;
+            color: #78909c;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             font-size: 0.9rem;
         }
 
-        /* --- PIE CHARTS --- */
-        .pies-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .pie-wrapper {
-            position: relative;
-            width: 150px;
-            height: 150px;
-        }
-
-        .pie {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 2px solid #333;
-            /* Conic gradient is dynamically set in JS */
-            transition: background 0.5s ease;
-        }
-
-        /* Grid lines overlay for pie */
-        .pie-grid {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-        }
-
-        /* --- FRACTION BARS --- */
-        .bars-container {
+        /* Clickable Bars */
+        .bars-wrapper {
             display: flex;
             flex-direction: column;
             gap: 15px;
             align-items: center;
         }
-
         .bar-row {
             display: flex;
             width: 100%;
             max-width: 600px;
-            height: 50px;
-            border: 2px solid #333;
-            border-radius: 4px;
+            height: 60px;
+            border: 3px solid #333;
+            border-radius: 8px;
             overflow: hidden;
             background: white;
+            cursor: pointer;
         }
-
         .bar-segment {
             flex: 1;
-            border-right: 1px solid #333;
-            transition: background-color 0.3s;
+            border-right: 2px solid #333;
+            transition: all 0.1s ease;
+            position: relative;
         }
         .bar-segment:last-child { border-right: none; }
+        .bar-segment:hover { opacity: 0.8; }
+        /* Add a faint plus icon on hover for empty slots */
+        .bar-segment.empty:hover::after {
+            content: '+';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ccc;
+            font-size: 24px;
+        }
 
-        /* --- NUMBER LINE --- */
-        .numberline-container {
+        /* Clickable Pies (SVG) */
+        .pies-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        .pie-svg {
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+        }
+        .pie-slice {
+            stroke: #333;
+            stroke-width: 2;
+            transition: fill 0.2s;
+        }
+        .pie-slice:hover { opacity: 0.85; }
+
+        /* Utility classes */
+        .bg-green { background-color: var(--c1); }
+        .bg-blue { background-color: var(--c2); }
+        .bg-white { background-color: white; }
+        
+        .fill-green { fill: var(--c1); }
+        .fill-blue { fill: var(--c2); }
+        .fill-white { fill: white; }
+
+        /* Number Line */
+        .number-line-wrapper {
             width: 100%;
             overflow-x: auto;
-            padding: 20px 0;
+            padding-bottom: 10px;
         }
-
-        svg { width: 100%; height: 120px; }
-        
-        text { font-family: sans-serif; font-size: 14px; user-select: none; }
-        .tick-line { stroke: #333; stroke-width: 2; }
-        .jump-arrow { fill: none; stroke-width: 3; stroke-linecap: round; marker-end: url(#arrowhead); }
-
-        /* Utility classes for coloring */
-        .fill-1 { background-color: var(--color-1); }
-        .fill-2 { background-color: var(--color-2); }
-        .fill-empty { background-color: transparent; }
-        
-        .legend {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-        .dot { width: 12px; height: 12px; display: inline-block; border-radius: 50%; margin-right: 5px; }
 
     </style>
 </head>
 <body>
 
-    <h1>Interactive Fraction Visualizer</h1>
-    <p class="subtitle">Explore why the denominator stays the same when adding fractions.</p>
+    <h1>Interactive Fraction Builder</h1>
+    <p class="subtitle">Click the bars or pie slices to build your fraction!</p>
 
-    <div class="controls">
-        <div class="fraction-input">
-            <input type="number" id="num1" value="1" min="0" oninput="updateAll()">
-            <div class="fraction-line"></div>
-            <input type="number" id="den" value="5" min="1" oninput="updateAll()">
-        </div>
-
-        <div class="operator">+</div>
-
-        <div class="fraction-input">
-            <input type="number" id="num2" value="3" min="0" oninput="updateAll()">
-            <div class="fraction-line"></div>
-            <input type="number" id="den-display" value="5" disabled style="background:#eee; color:#888">
-        </div>
-
-        <div class="operator">=</div>
-
-        <div class="fraction-input">
-            <span id="res-num" style="font-size: 1.5rem; color: #333;">4</span>
-            <div class="fraction-line"></div>
-            <span id="res-den" style="font-size: 1.5rem; color: #333;">5</span>
-        </div>
-    </div>
-    
-    <div class="legend">
-        <span><span class="dot" style="background:var(--color-1)"></span>First Number</span>
-        <span><span class="dot" style="background:var(--color-2)"></span>Second Number</span>
-    </div>
-
-    <div class="vis-section">
-        <div class="vis-header">
-            <div class="vis-title">Fraction Bars</div>
-            <div class="explanation">Best for showing that the "container" size doesn't change.</div>
-        </div>
-        <div class="bars-container" id="bars-container">
+    <div class="dashboard">
+        <div class="equation-display">
+            <div class="frac">
+                <span class="top num-green" id="disp-n1">1</span>
+                <span class="bottom" id="disp-d1">5</span>
             </div>
-    </div>
-
-    <div class="vis-section">
-        <div class="vis-header">
-            <div class="vis-title">Area Model (Pies)</div>
-            <div class="explanation">Best for visualizing mixed numbers (totals greater than 1).</div>
-        </div>
-        <div class="pies-container" id="pies-container">
+            <span>+</span>
+            <div class="frac">
+                <span class="top num-blue" id="disp-n2">2</span>
+                <span class="bottom" id="disp-d2">5</span>
             </div>
+            <span>=</span>
+            <div class="frac">
+                <span class="top" id="disp-nt">3</span>
+                <span class="bottom" id="disp-dt">5</span>
+            </div>
+        </div>
+
+        <div class="controls-row">
+            <div style="display:flex; flex-direction:column; gap:5px;">
+                <label style="font-size:0.8rem; font-weight:bold; color:#78909c;">PAINTING COLOR:</label>
+                <div class="mode-selector">
+                    <button class="mode-btn green active" id="btn-green" onclick="setMode('green')">
+                        First Number
+                    </button>
+                    <button class="mode-btn blue" id="btn-blue" onclick="setMode('blue')">
+                        Second Number
+                    </button>
+                </div>
+            </div>
+
+            <div class="slider-container">
+                <label for="den-slider" style="font-weight:bold; color:#546e7a;">Denominator (Size): <span id="den-val">5</span></label>
+                <input type="range" id="den-slider" min="2" max="12" value="5" oninput="updateDenominator(this.value)">
+            </div>
+        </div>
     </div>
 
-    <div class="vis-section">
-        <div class="vis-header">
+    <div class="vis-container">
+        
+        <div class="vis-card">
+            <div class="vis-title">Bar Model (Click to Fill)</div>
+            <div class="bars-wrapper" id="bars-root"></div>
+        </div>
+
+        <div class="vis-card">
+            <div class="vis-title">Circle Model (Click to Fill)</div>
+            <div class="pies-wrapper" id="pies-root"></div>
+        </div>
+
+        <div class="vis-card">
             <div class="vis-title">Number Line</div>
-            <div class="explanation">Best for seeing addition as "distance traveled".</div>
+            <div class="number-line-wrapper" id="nl-root"></div>
         </div>
-        <div class="numberline-container" id="numberline-container">
-            </div>
+
     </div>
 
 <script>
-    function updateAll() {
-        // 1. Get Values
-        const num1 = parseInt(document.getElementById('num1').value) || 0;
-        const num2 = parseInt(document.getElementById('num2').value) || 0;
-        const den = parseInt(document.getElementById('den').value) || 1;
+    // State
+    let n1 = 1;
+    let n2 = 2;
+    let den = 5;
+    let activeMode = 'green'; // 'green' or 'blue'
 
-        // Sync the disabled denominator input
-        document.getElementById('den-display').value = den;
+    // Init
+    updateAll();
 
-        // Calculate Result
-        const totalNum = num1 + num2;
+    function setMode(mode) {
+        activeMode = mode;
         
-        // Update Result Text
-        document.getElementById('res-num').innerText = totalNum;
-        document.getElementById('res-den').innerText = den;
+        // Update Buttons
+        document.getElementById('btn-green').className = `mode-btn green ${mode === 'green' ? 'active' : ''}`;
+        document.getElementById('btn-blue').className = `mode-btn blue ${mode === 'blue' ? 'active' : ''}`;
+    }
 
-        // 2. Determine how many "wholes" we need to draw
-        // Even if total is 0, we draw at least 1 whole for context
-        const wholesNeeded = Math.max(1, Math.ceil(totalNum / den));
+    function updateDenominator(val) {
+        den = parseInt(val);
+        document.getElementById('den-val').innerText = den;
+        updateAll();
+    }
 
-        // 3. Render Models
-        renderBars(num1, num2, den, wholesNeeded);
-        renderPies(num1, num2, den, wholesNeeded);
-        renderNumberLine(num1, num2, den, wholesNeeded);
+    // Logic for clicking a piece
+    function handlePieceClick(type) {
+        // Type: 'green' (clicked a green piece), 'blue' (clicked blue), 'empty' (clicked empty)
+        
+        if (type === 'green') {
+            if (n1 > 0) n1--;
+        } else if (type === 'blue') {
+            if (n2 > 0) n2--;
+        } else if (type === 'empty') {
+            if (activeMode === 'green') n1++;
+            else n2++;
+        }
+        updateAll();
+    }
+
+    function updateAll() {
+        // Update Text
+        document.getElementById('disp-n1').innerText = n1;
+        document.getElementById('disp-d1').innerText = den;
+        document.getElementById('disp-n2').innerText = n2;
+        document.getElementById('disp-d2').innerText = den;
+        document.getElementById('disp-nt').innerText = n1 + n2;
+        document.getElementById('disp-dt').innerText = den;
+
+        const total = n1 + n2;
+        // Calculate how many wholes we need (always show at least one more than full, or just enough)
+        // Let's settle on: Enough wholes to fit the data + 1 empty whole for expansion
+        // Unless it's exactly even, then just enough.
+        // Actually, for UI stability, let's just do Math.ceil(total/den) + (total%den === 0 ? 0 : 1) is confusing.
+        // Let's just ensure there is always at least one empty slot available in the last whole, 
+        // or if the last whole is full, add a new whole.
+        let wholes = Math.ceil(total / den);
+        if (total % den === 0 || total === 0) wholes++; 
+        if (wholes < 1) wholes = 1;
+
+        renderBars(wholes);
+        renderPies(wholes);
+        renderNumberLine(wholes);
     }
 
     // --- RENDER BARS ---
-    function renderBars(n1, n2, d, wholes) {
-        const container = document.getElementById('bars-container');
-        container.innerHTML = ''; // Clear
+    function renderBars(wholes) {
+        const root = document.getElementById('bars-root');
+        root.innerHTML = '';
 
         let count1 = n1;
         let count2 = n2;
@@ -281,206 +357,191 @@
             const row = document.createElement('div');
             row.className = 'bar-row';
             
-            for (let i = 0; i < d; i++) {
+            for (let i = 0; i < den; i++) {
                 const seg = document.createElement('div');
                 seg.className = 'bar-segment';
                 
-                // Coloring Logic
                 if (count1 > 0) {
-                    seg.style.backgroundColor = 'var(--color-1)';
+                    seg.classList.add('bg-green');
+                    seg.onclick = () => handlePieceClick('green');
                     count1--;
                 } else if (count2 > 0) {
-                    seg.style.backgroundColor = 'var(--color-2)';
+                    seg.classList.add('bg-blue');
+                    seg.onclick = () => handlePieceClick('blue');
                     count2--;
                 } else {
-                    seg.style.backgroundColor = 'transparent';
+                    seg.classList.add('bg-white', 'empty');
+                    seg.onclick = () => handlePieceClick('empty');
                 }
                 row.appendChild(seg);
             }
-            container.appendChild(row);
+            root.appendChild(row);
         }
     }
 
-    // --- RENDER PIES ---
-    function renderPies(n1, n2, d, wholes) {
-        const container = document.getElementById('pies-container');
-        container.innerHTML = ''; 
+    // --- RENDER PIES (SVG) ---
+    function renderPies(wholes) {
+        const root = document.getElementById('pies-root');
+        root.innerHTML = '';
 
         let count1 = n1;
         let count2 = n2;
 
         for (let w = 0; w < wholes; w++) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'pie-wrapper';
-
-            // 1. Calculate degrees for each section in this specific pie
-            // A whole pie has 'd' slots.
-            // We fill slots with Color 1, then Color 2, then Empty.
-            
-            let segments = [];
-            let currentAngle = 0;
-            const degPerUnit = 360 / d;
-
-            for(let i=0; i<d; i++) {
-                let color = 'transparent';
-                if (count1 > 0) { color = 'var(--color-1)'; count1--; }
-                else if (count2 > 0) { color = 'var(--color-2)'; count2--; }
-                else { color = '#fff'; } // Empty
-
-                // Build gradient string parts
-                // "color startDeg endDeg"
-                segments.push(`${color} ${currentAngle}deg ${currentAngle + degPerUnit}deg`);
-                currentAngle += degPerUnit;
-            }
-
-            const pie = document.createElement('div');
-            pie.className = 'pie';
-            pie.style.background = `conic-gradient(${segments.join(', ')})`;
-            
-            // Create Grid Lines (SVG overlay)
             const svgNS = "http://www.w3.org/2000/svg";
             const svg = document.createElementNS(svgNS, "svg");
-            svg.setAttribute("class", "pie-grid");
-            svg.setAttribute("viewBox", "0 0 100 100");
-            
-            // Draw lines from center
-            for(let i=0; i<d; i++) {
-                const angle = (i * 360 / d) * (Math.PI / 180); // Rads
-                // Center is 50,50. Radius is 50.
-                const x2 = 50 + 50 * Math.cos(angle - Math.PI/2); // -PI/2 to start at top
-                const y2 = 50 + 50 * Math.sin(angle - Math.PI/2);
-                
-                const line = document.createElementNS(svgNS, "line");
-                line.setAttribute("x1", "50");
-                line.setAttribute("y1", "50");
-                line.setAttribute("x2", x2);
-                line.setAttribute("y2", y2);
-                line.setAttribute("stroke", "#333");
-                line.setAttribute("stroke-width", "1");
-                svg.appendChild(line);
-            }
+            svg.setAttribute("class", "pie-svg");
+            svg.setAttribute("viewBox", "-1 -1 102 102"); // slight padding
 
-            // Circle Border
+            const cx = 50, cy = 50, r = 50;
+
+            for (let i = 0; i < den; i++) {
+                // Determine color
+                let type = 'empty';
+                let cls = 'fill-white';
+                if (count1 > 0) { type = 'green'; cls = 'fill-green'; count1--; }
+                else if (count2 > 0) { type = 'blue'; cls = 'fill-blue'; count2--; }
+
+                // Calculate Path
+                const startAngle = (i * 360 / den) - 90; // -90 to start at top
+                const endAngle = ((i + 1) * 360 / den) - 90;
+                
+                // Convert to radians
+                const startRad = startAngle * Math.PI / 180;
+                const endRad = endAngle * Math.PI / 180;
+
+                const x1 = cx + r * Math.cos(startRad);
+                const y1 = cy + r * Math.sin(startRad);
+                const x2 = cx + r * Math.cos(endRad);
+                const y2 = cy + r * Math.sin(endRad);
+
+                // SVG Path command
+                // M center L startPoint A radius radius 0 largeArcFlag 1 endPoint Z
+                const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+                
+                const d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+
+                const path = document.createElementNS(svgNS, "path");
+                path.setAttribute("d", d);
+                path.setAttribute("class", `pie-slice ${cls}`);
+                path.onclick = () => handlePieceClick(type);
+                
+                svg.appendChild(path);
+            }
+            
+            // Draw outer circle stroke (for aesthetics)
             const circle = document.createElementNS(svgNS, "circle");
-            circle.setAttribute("cx", "50");
-            circle.setAttribute("cy", "50");
-            circle.setAttribute("r", "49");
+            circle.setAttribute("cx", cx); circle.setAttribute("cy", cy); circle.setAttribute("r", r);
             circle.setAttribute("fill", "none");
             circle.setAttribute("stroke", "#333");
             circle.setAttribute("stroke-width", "2");
+            circle.style.pointerEvents = "none";
             svg.appendChild(circle);
 
-            wrapper.appendChild(pie);
-            wrapper.appendChild(svg);
-            container.appendChild(wrapper);
+            root.appendChild(svg);
         }
     }
 
     // --- RENDER NUMBER LINE ---
-    function renderNumberLine(n1, n2, d, wholes) {
-        const container = document.getElementById('numberline-container');
-        container.innerHTML = '';
+    function renderNumberLine(wholes) {
+        const root = document.getElementById('nl-root');
+        root.innerHTML = '';
         
-        // Setup Dimensions
-        const width = Math.max(600, wholes * 300); // Dynamic width
-        const height = 120;
-        const margin = 30;
-        const effectiveWidth = width - (margin * 2);
+        // Dynamically calculate width
+        const width = Math.max(800, wholes * 250);
+        const height = 100;
+        const margin = 40;
+        const effWidth = width - (margin*2);
         
-        // Unit Size (pixels per 1 whole)
-        const unitPx = effectiveWidth / wholes; 
-        const tickPx = unitPx / d; // Pixels per fraction unit (e.g. 1/5)
-
         const svgNS = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(svgNS, "svg");
         svg.setAttribute("width", width);
         svg.setAttribute("height", height);
 
-        // Define Arrow Marker
+        // Arrow Marker
         const defs = document.createElementNS(svgNS, "defs");
         const marker = document.createElementNS(svgNS, "marker");
-        marker.setAttribute("id", "arrowhead");
+        marker.setAttribute("id", "arrow");
         marker.setAttribute("markerWidth", "10");
-        marker.setAttribute("markerHeight", "7");
-        marker.setAttribute("refX", "9");
-        marker.setAttribute("refY", "3.5");
+        marker.setAttribute("markerHeight", "10");
+        marker.setAttribute("refX", "8");
+        marker.setAttribute("refY", "3");
         marker.setAttribute("orient", "auto");
-        const polygon = document.createElementNS(svgNS, "polygon");
-        polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
-        polygon.setAttribute("fill", "#555");
-        marker.appendChild(polygon);
+        const pathM = document.createElementNS(svgNS, "path");
+        pathM.setAttribute("d", "M0,0 L0,6 L9,3 z");
+        pathM.setAttribute("fill", "#555");
+        marker.appendChild(pathM);
         defs.appendChild(marker);
         svg.appendChild(defs);
 
-        // Draw Base Line
-        const baseLine = document.createElementNS(svgNS, "line");
-        baseLine.setAttribute("x1", margin);
-        baseLine.setAttribute("y1", height/2 + 20);
-        baseLine.setAttribute("x2", width - margin);
-        baseLine.setAttribute("y2", height/2 + 20);
-        baseLine.setAttribute("stroke", "#333");
-        baseLine.setAttribute("stroke-width", "2");
-        svg.appendChild(baseLine);
+        // Main Line
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", margin); line.setAttribute("y1", 60);
+        line.setAttribute("x2", width - margin); line.setAttribute("y2", 60);
+        line.setAttribute("stroke", "#333");
+        line.setAttribute("stroke-width", "2");
+        svg.appendChild(line);
 
-        // Draw Ticks & Labels
-        for (let i = 0; i <= wholes * d; i++) {
-            const x = margin + (i * tickPx);
-            const isWhole = i % d === 0;
+        // Ticks
+        const step = effWidth / wholes;
+        const subStep = step / den;
+
+        for(let i=0; i<=wholes * den; i++) {
+            const x = margin + (i * subStep);
+            const isWhole = i % den === 0;
             
             const tick = document.createElementNS(svgNS, "line");
-            tick.setAttribute("x1", x);
-            tick.setAttribute("x2", x);
-            tick.setAttribute("y1", height/2 + 20);
-            tick.setAttribute("y2", height/2 + (isWhole ? 35 : 28));
+            tick.setAttribute("x1", x); tick.setAttribute("x2", x);
+            tick.setAttribute("y1", 60); tick.setAttribute("y2", isWhole ? 75 : 70);
             tick.setAttribute("stroke", "#333");
-            tick.setAttribute("stroke-width", isWhole ? 3 : 1);
+            tick.setAttribute("stroke-width", isWhole ? 2 : 1);
             svg.appendChild(tick);
 
-            if (isWhole) {
-                const text = document.createElementNS(svgNS, "text");
-                text.setAttribute("x", x);
-                text.setAttribute("y", height/2 + 55);
-                text.setAttribute("text-anchor", "middle");
-                text.textContent = i / d;
-                svg.appendChild(text);
+            if(isWhole) {
+                const txt = document.createElementNS(svgNS, "text");
+                txt.setAttribute("x", x); txt.setAttribute("y", 90);
+                txt.setAttribute("text-anchor", "middle");
+                txt.style.fontFamily = "sans-serif";
+                txt.style.fontSize = "14px";
+                txt.textContent = i / den;
+                svg.appendChild(txt);
             }
         }
 
-        // Draw Jump 1 (Green)
+        // Arcs
+        // Green Arc
         if (n1 > 0) {
-            const startX = margin;
-            const endX = margin + (n1 * tickPx);
-            const path = document.createElementNS(svgNS, "path");
-            // Quadratic Bezier curve for jump
-            const midX = (startX + endX) / 2;
-            path.setAttribute("d", `M ${startX} ${height/2+15} Q ${midX} ${height/2 - 40} ${endX} ${height/2+15}`);
-            path.setAttribute("stroke", "var(--color-1)");
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke-width", "3");
-            path.setAttribute("marker-end", "url(#arrowhead)");
-            svg.appendChild(path);
+            const xStart = margin;
+            const xEnd = margin + (n1 * subStep);
+            const arc = createJumpArc(svgNS, xStart, xEnd, "var(--c1)");
+            svg.appendChild(arc);
         }
-
-        // Draw Jump 2 (Blue) - Starts where Green ended
+        // Blue Arc
         if (n2 > 0) {
-            const startX = margin + (n1 * tickPx);
-            const endX = startX + (n2 * tickPx);
-            const path = document.createElementNS(svgNS, "path");
-            const midX = (startX + endX) / 2;
-            // Higher arc if it overlaps significantly, or same height
-            path.setAttribute("d", `M ${startX} ${height/2+15} Q ${midX} ${height/2 - 40} ${endX} ${height/2+15}`);
-            path.setAttribute("stroke", "var(--color-2)");
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke-width", "3");
-            path.setAttribute("marker-end", "url(#arrowhead)");
-            svg.appendChild(path);
+            const xStart = margin + (n1 * subStep);
+            const xEnd = xStart + (n2 * subStep);
+            const arc = createJumpArc(svgNS, xStart, xEnd, "var(--c2)");
+            svg.appendChild(arc);
         }
 
-        container.appendChild(svg);
+        root.appendChild(svg);
     }
 
-    // Init
-    updateAll();
+    function createJumpArc(ns, x1, x2, color) {
+        const path = document.createElementNS(ns, "path");
+        const midX = (x1 + x2) / 2;
+        // Curve height depends on distance, capped
+        const dist = x2 - x1;
+        const h = Math.min(50, 20 + dist/10); 
+        
+        const d = `M ${x1} 55 Q ${midX} ${55 - h} ${x2} 55`;
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", color);
+        path.setAttribute("stroke-width", "4");
+        path.setAttribute("marker-end", "url(#arrow)");
+        return path;
+    }
 
 </script>
 </body>
